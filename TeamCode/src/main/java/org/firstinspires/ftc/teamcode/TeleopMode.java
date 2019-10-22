@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.Range;
 
 
 @TeleOp(name="Main Teleop", group="Iterative Opmode")
@@ -25,5 +26,12 @@ public class TeleopMode extends OpMode {
 
         robot.leftDrive.setPower(leftPwr);
         robot.rightDrive.setPower(rightPwr);
+
+        if (gamepad1.right_bumper) {
+            robot.gateServo.setPower(1);
+        } else if (gamepad1.left_bumper)
+        {
+            robot.gateServo.setPower(0);
+        }
     }
 }

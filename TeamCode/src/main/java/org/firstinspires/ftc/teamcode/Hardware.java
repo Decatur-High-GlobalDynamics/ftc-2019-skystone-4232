@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cColorSensor;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.util.Range;
 public class Hardware {
     public DcMotor leftDrive;
     public DcMotor rightDrive;
+    public CRServo gateServo;
 
     HardwareMap hwMap;
 
@@ -22,6 +24,7 @@ public class Hardware {
         hwMap = hw;
         leftDrive = hwMap.dcMotor.get("left_drive");
         rightDrive = hwMap.dcMotor.get("right_drive");
+        gateServo = hwMap.crservo.get("gate");
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
         leftDrive.setPower(0);
