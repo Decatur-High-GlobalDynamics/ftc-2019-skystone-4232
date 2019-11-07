@@ -13,7 +13,9 @@ import com.qualcomm.robotcore.util.Range;
 public class Hardware {
     public DcMotor leftDrive;
     public DcMotor rightDrive;
-    public CRServo gateServo;
+    public CRServo foundationServo;
+    public CRServo wheelServoLeft;
+    public CRServo wheelServoRight;
 
     HardwareMap hwMap;
 
@@ -24,9 +26,14 @@ public class Hardware {
         hwMap = hw;
         leftDrive = hwMap.dcMotor.get("left_drive");
         rightDrive = hwMap.dcMotor.get("right_drive");
-        gateServo = hwMap.crservo.get("gate");
+        foundationServo = hwMap.crservo.get("foundation");
+        wheelServoLeft = hwMap.crservo.get("wheel_left");
+        wheelServoRight = hwMap.crservo.get("wheel_right");
+
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        wheelServoLeft.setDirection(DcMotor.Direction.REVERSE);
+        wheelServoRight.setDirection(DcMotor.Direction.FORWARD);
         leftDrive.setPower(0);
         rightDrive.setPower(0);
         leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

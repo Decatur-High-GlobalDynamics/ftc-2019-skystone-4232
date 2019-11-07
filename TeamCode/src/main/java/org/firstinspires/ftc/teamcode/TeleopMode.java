@@ -27,11 +27,24 @@ public class TeleopMode extends OpMode {
         robot.leftDrive.setPower(leftPwr);
         robot.rightDrive.setPower(rightPwr);
 
-        if (gamepad1.right_bumper) {
-            robot.gateServo.setPower(1);
-        } else if (gamepad1.left_bumper)
+        if (gamepad2.a) {
+            robot.foundationServo.setPower(1);
+        } else if (gamepad2.b) {
+            robot.foundationServo.setPower(-1);
+        } else {
+            robot.foundationServo.setPower(0);
+        }
+
+        if (gamepad2.right_bumper) {
+            robot.wheelServoLeft.setPower(1);
+            robot.wheelServoRight.setPower(1);
+        } else if (gamepad2.left_bumper)
         {
-            robot.gateServo.setPower(0);
+            robot.wheelServoLeft.setPower(-1);
+            robot.wheelServoRight.setPower(-1);
+        } else {
+            robot.wheelServoLeft.setPower(0);
+            robot.wheelServoRight.setPower(0);
         }
     }
 }
