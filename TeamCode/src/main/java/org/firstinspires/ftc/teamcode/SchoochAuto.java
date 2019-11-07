@@ -2,12 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
 
 @Autonomous(name="Schooch", group="Linear op mode")
 public class SchoochAuto extends LinearOpMode {
-    Hardware robot = new Hardware();
+    TeamRobot robot = new TeamRobot();
 
     @Override
     public void runOpMode() {

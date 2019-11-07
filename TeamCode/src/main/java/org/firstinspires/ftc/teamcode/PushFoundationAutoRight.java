@@ -5,8 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-import java.io.InvalidClassException;
-
 @Autonomous(name="Push Foundation Right", group="Linear op mode")
 public class PushFoundationAutoRight extends LinearOpMode {
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;
@@ -15,7 +13,7 @@ public class PushFoundationAutoRight extends LinearOpMode {
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
     static final double     INCHES_PER_DEGREE       = 5.0/90.0;
-    Hardware robot = new Hardware();
+    TeamRobot robot = new TeamRobot();
 
     @Override
     public void runOpMode() {
