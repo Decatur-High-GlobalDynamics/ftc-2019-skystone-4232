@@ -2,13 +2,12 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
 
 
 @TeleOp(name="Main Teleop", group="Iterative Opmode")
 
 public class TeleopMode extends OpMode {
-    Hardware robot = new Hardware();
+    TeamRobot robot = new TeamRobot();
 
     @Override
     public void init() {

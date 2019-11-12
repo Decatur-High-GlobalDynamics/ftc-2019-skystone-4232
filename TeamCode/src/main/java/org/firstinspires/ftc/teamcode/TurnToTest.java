@@ -14,8 +14,7 @@ public class TurnToTest extends LinearOpMode {
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;
     static final double     COUNTS_PER_INCH         = 1;
     static final double     INCHES_PER_DEGREE       = 5.0/90.0;
-    Hardware robot = new Hardware();
-    ElapsedTime runtime = new ElapsedTime();
+    TeamRobot robot = new TeamRobot();
 
     @Override
     public void runOpMode() {
