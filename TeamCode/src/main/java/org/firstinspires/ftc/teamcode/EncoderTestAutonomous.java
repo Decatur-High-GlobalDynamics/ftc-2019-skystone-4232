@@ -1,14 +1,19 @@
-package org.firstinspires.ftc.teamcode.scheduler;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.teamcode.TeamRobot;
+import org.firstinspires.ftc.teamcode.scheduler.BaseAutonomousOpMode;
+
 @TeleOp(name = "T: EncoderTest", group = "Tinkering")
-
-public class EncoderTestAutonomous extends BaseAutonomousOpMode
+public class EncoderTestAutonomous extends  BaseAutonomousOpMode<TeamRobot>
 {
-
     int startPosition, stopPosition;
+
+    public EncoderTestAutonomous() {
+        super(new TeamRobot());
+    }
 
     @Override
     public void teamInit() {

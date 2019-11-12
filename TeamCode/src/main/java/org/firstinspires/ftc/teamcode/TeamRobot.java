@@ -2,10 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.scheduler.BaseLinearOpMode;
 import org.firstinspires.ftc.teamcode.scheduler.Robot;
 import org.firstinspires.ftc.teamcode.scheduler.TeamImu;
 

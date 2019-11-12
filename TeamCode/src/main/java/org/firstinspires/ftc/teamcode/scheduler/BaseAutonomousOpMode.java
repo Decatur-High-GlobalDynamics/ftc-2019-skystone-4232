@@ -2,9 +2,9 @@ package org.firstinspires.ftc.teamcode.scheduler;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-public abstract class BaseAutonomousOpMode extends BaseLinearOpMode
+public abstract class BaseAutonomousOpMode<RobotClass extends Robot> extends BaseLinearOpMode<RobotClass>
 {
-    public BaseAutonomousOpMode(Robot robot)
+    public BaseAutonomousOpMode(RobotClass robot)
     {
         super(robot);
     }
