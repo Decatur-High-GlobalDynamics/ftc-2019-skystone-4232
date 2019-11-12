@@ -37,12 +37,12 @@ public abstract class Robot
     private RobotVision robotVision;
     public Telemetry.Line visionLine;
 
-    TeamImu teamImu;
+    protected TeamImu teamImu;
     double correctHeading;
 
     // Used to measure robot motor movements/speeds/changes
-        int previousLeftWheelPosition;
-        int previousRightWheelPosition;
+        protected int previousLeftWheelPosition;
+        protected int previousRightWheelPosition;
         int leftWheelSpeed;
         int rightWheelSpeed;
         double previousLeftMotorPower;
@@ -71,14 +71,13 @@ public abstract class Robot
         return sharedInstance;
     }
 
-    protected Robot init(Telemetry telemetry, HardwareMap hardwareMap, BaseLinearOpMode baseLinearOpMode)
+    protected void init(Telemetry telemetry, HardwareMap hardwareMap, BaseLinearOpMode baseLinearOpMode)
     {
         this.telemetry   = telemetry;
         this.hardwareMap = hardwareMap;
         opMode = baseLinearOpMode;
+        teamImu = new TeamImu(hardwareMap, telemetry);
         correctHeading = teamImu.getTotalDegreesTurned();
-
-        return this;
     }
 
     // TODO... these are assuming a tank drive... We'll deal with this when we have something better
@@ -998,4 +997,5 @@ public abstract class Robot
 
         return originalMode;
     }
+
 }
