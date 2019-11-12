@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import static org.firstinspires.ftc.teamcode.scheduler.Utils.log_raw;
 
-public abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMode implements SchedulerController
+abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMode implements SchedulerController
 {
     public enum OPMODE_STATE {NEW, INITIALIZING, WAITING_FOR_START, RUNNING, STOPPING};
 
