@@ -6,6 +6,10 @@ import org.firstinspires.ftc.teamcode.TeamRobot;
 
 import static org.firstinspires.ftc.teamcode.scheduler.Utils.safeStringFormat;
 
+/**
+ * EndableAction represents an activity that will either finish itself or can be abort()'ed.
+ * For example, turning to a heading or going forward for 3 feet.
+ */
 public abstract class EndableAction extends OngoingAction{
     private final long timeLimit_ms;
     public Boolean endedSuccessfully=null;

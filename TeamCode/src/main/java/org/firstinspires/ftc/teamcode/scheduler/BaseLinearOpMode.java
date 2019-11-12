@@ -14,7 +14,7 @@ public abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends Lin
     private static final long TELEMETRY_LOGGING_INTERVAL_MS = 250L;
 
     final Scheduler scheduler = new Scheduler(this);
-    TeamRobotClass robot;
+    protected final TeamRobotClass robot;
 
     OPMODE_STATE state = OPMODE_STATE.NEW;
     long opmodeStateChanged_ms = System.currentTimeMillis();

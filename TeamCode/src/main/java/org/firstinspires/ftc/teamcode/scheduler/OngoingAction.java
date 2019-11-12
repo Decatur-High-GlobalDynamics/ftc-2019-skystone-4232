@@ -4,6 +4,17 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+
+/**
+ * OngoingAction represents an action that will be occurring for some time.
+ * From when it is constructed, loop() will be called periodically, and
+ * isUsingDcMotor(), isUsingServo() will be checked to make sure that only
+ * one OngoingAction is controlling each robot component.
+ *
+ * Usually, OngoingAction is not used directly, but instead one of its subclasses
+ * is used:
+ *   EndableAction: Action that is temporary.
+ */
 public abstract class OngoingAction extends Action{
     // Managed by scheduler
         int numberOfLoops=0;
