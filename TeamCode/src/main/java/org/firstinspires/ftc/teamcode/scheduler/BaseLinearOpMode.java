@@ -20,8 +20,7 @@ abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMo
     long opmodeStateChanged_ms = System.currentTimeMillis();
 
 
-    Action opmodeAction = new ImmediateAction("OpMode", "%s", getClass().getSimpleName());
-    EventGamepad gamepad1, gamepad2;
+    protected Action opmodeAction;
 
 
     public BaseLinearOpMode(TeamRobotClass robot) {
@@ -31,7 +30,11 @@ abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMo
     // First thing to init
     final void baseInit()
     {
-        robot.init(telemetry, hardwareMap, this);
+        // The first trackMovementSpeeds will correctly set the previous motor positions
+        // The second trackMovementSpeeds will correctly set the speeds
+        robot.trackMovementSpeeds();
+        robot.trackMovementSpeeds();
+        robot.setupRobotTelemetry(telemetry);
 
         telemetry.addLine()
                 .addData("OpMode", new Func<Object>()
@@ -44,56 +47,56 @@ abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMo
                     }
                 });
 
-        new RepeatedAction("OpmodeMaintenance")
+        new RepeatedAction("RobotMaintenance")
         {
             @Override
             protected void doTask()
             {
-
+                robot.trackMovementSpeeds();
+                robot.protectRobot();
+                updateTelemetry(telemetry);
             }
         }.start();
     }
 
     // Where OpModes can initialize themselves
-    void teamInit()
-    {
+    protected abstract void teamInit();
 
-    }
-
-    // What happens after Play is pressed
-    protected void teamRun()
-    {
-
-    }
+    // What happens after Play is pressed. OpMode completes when this returns.
+    protected abstract void teamRun() throws InterruptedException;
 
 
     /**
      * Use this in loops to abort them when the OpMode should stop.
-     * Note: This calls scheduler.loop() to keep the robot running while your
-     * while loop waits for something
+     * Note: This calls scheduler.runLoopOnce() to keep the robot running while your
+     * while runLoopOnce waits for something
      *
-     * for example: while (shouldOpModeKeepRunning() && distanceMoved<10) {//keep moving}
+     * for example: while (runSchedulerAndRobot() && distanceMoved<10) {//keep moving}
      *
      * @return Whether the OpMode should keep running
      */
-    public boolean shouldOpModeKeepRunning()
+    protected final boolean runSchedulerAndRobot() throws InterruptedException
     {
         // We run until stop is requested
         if (isStopRequested())
             return false;
 
-        scheduler.loop();
+        scheduler.runLoopOnce();
 
         return true;
     }
 
 
+    /**
+     * This is called from FIRST to start the OpMode
+     * @throws InterruptedException
+     */
     @Override
-    public void runOpMode() throws InterruptedException
+    public final void runOpMode() throws InterruptedException
     {
-        gamepad1 = new EventGamepad("GP1", super.gamepad1);
-        gamepad2 = new EventGamepad("GP2", super.gamepad2);
+        robot.init(telemetry, hardwareMap, this);
 
+        opmodeAction = new ImmediateAction("OpMode", "%s", getClass().getSimpleName());
 
         try
         {
@@ -107,16 +110,11 @@ abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMo
             opmodeAction.setStatus("Waiting for start");
 
             while (!isStarted())
-                scheduler.loop();
+                runSchedulerAndRobot();
 
             setOpModeState(OPMODE_STATE.RUNNING);
             opmodeAction.setStatus("Running: teamRun()");
             teamRun();
-
-            opmodeAction.setStatus("Passing control to scheduler");
-            while (shouldOpModeKeepRunning())
-            {
-            }
         }
         catch (StopRobotException e)
         {
@@ -129,12 +127,12 @@ abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMo
 
     private void setOpModeState(OPMODE_STATE newState)
     {
-        opmodeAction.setStatus("Starting opmode state %s", newState);
+        opmodeAction.setStatus(newState.toString());
         state = newState;
         opmodeStateChanged_ms = System.currentTimeMillis();
     }
 
-    public void teamSleep(long time_ms, String reason)
+    public void teamSleep(long time_ms, String reason) throws InterruptedException
     {
         Scheduler.get().sleep(time_ms, reason);
     }
@@ -144,6 +142,9 @@ abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMo
         if ( !isStarted() )
             return false;
 
+        if ( isStopRequested() )
+            return true;
+
         return false;
     }
 
@@ -152,20 +153,13 @@ abstract class BaseLinearOpMode<TeamRobotClass extends Robot> extends LinearOpMo
      * which calls Scheduler.sleep which then calls this.
      * @param time_ms
      */
-    public void schedulerSleep(long time_ms)
+    public void schedulerSleep(long time_ms) throws InterruptedException
     {
         long stopTime_ms = System.currentTimeMillis() + time_ms;
-        try
+        while (!isStopRequested() && System.currentTimeMillis()<stopTime_ms)
         {
-            while (!isStopRequested() && System.currentTimeMillis()<stopTime_ms)
-            {
-                idle();
-                Thread.sleep(1);
-            }
-        }
-        catch (InterruptedException e)
-        {
-            return;
+            idle();
+            Thread.sleep(1);
         }
     }
 

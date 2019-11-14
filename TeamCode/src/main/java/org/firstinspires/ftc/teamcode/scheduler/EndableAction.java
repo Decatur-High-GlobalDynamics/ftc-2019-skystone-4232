@@ -15,8 +15,6 @@ public abstract class EndableAction extends OngoingAction{
     public Boolean endedSuccessfully=null;
     private boolean wasAborted =false;
 
-    Telemetry.Line telemetryStatusLine;
-
     public EndableAction(String name){
         this(0, name, null);
     }
@@ -36,14 +34,6 @@ public abstract class EndableAction extends OngoingAction{
         endedSuccessfully=null;
         wasAborted =false;
 
-        telemetryStatusLine = telemetryStatusLine = Scheduler.get().getTelemetry().addLine();
-        telemetryStatusLine.addData("Action", new Func<Object>() {
-            @Override
-            public Object value() {
-                return TeamRobot.get().saveTelemetryData("EA-"+label, "%s -- %s", toShortString(), status);
-            }
-        });
-
         return this;
     }
 
@@ -53,7 +43,7 @@ public abstract class EndableAction extends OngoingAction{
     {
         String reason =safeStringFormat(reasonFormat, reasonArgs);
 
-        TeamRobot.get().alert("Action aborted: %s. Stopping any children and then myself", reason);
+        Robot.sharedInstance.alert("Action aborted: %s. Stopping any children and then myself", reason);
 
         endedSuccessfully = false;
         wasAborted = true;
@@ -70,12 +60,6 @@ public abstract class EndableAction extends OngoingAction{
         finish("ABORTED: " + reasonFormat, reasonArgs);
     }
 
-    protected void cleanup(boolean actionWasCompletedsSuccessfully)
-    {
-        Scheduler.get().getTelemetry().removeLine(telemetryStatusLine);
-        TeamRobot.get().removeTelemetryData("EA-"+label);
-    }
-
     @Override
     public final void finish(String messsageFormat, Object... messageArgs)
     {
@@ -86,7 +70,7 @@ public abstract class EndableAction extends OngoingAction{
         super.finish(messsageFormat, messageArgs);
     }
 
-    public boolean waitUntilFinished()
+    public boolean waitUntilFinished() throws InterruptedException
     {
         Scheduler.get().waitForActionToFinish(this);
         return endedSuccessfully;
@@ -98,7 +82,7 @@ public abstract class EndableAction extends OngoingAction{
     }
 
     @Override
-    public void waitFor(EndableAction... actions)
+    public void waitFor(EndableAction... actions) throws InterruptedException
     {
         super.waitFor(actions);
 

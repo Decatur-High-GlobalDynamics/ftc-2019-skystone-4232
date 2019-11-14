@@ -162,7 +162,7 @@ public class RobotVision
             return;
         }
 
-        robot.logChange("Vision", "activating");
+        robot.documentComponentStatus("Vision", "activating");
 
         if (!tfodIsActive)
             tfod.activate();
@@ -171,7 +171,7 @@ public class RobotVision
 
     public void deactivate()
     {
-        robot.logChange("Vision", "deactivating");
+        robot.documentComponentStatus("Vision", "deactivating");
         if (tfodIsActive)
             tfod.deactivate();
 

@@ -7,9 +7,9 @@ public class EventButton
     String name;
     // Is the button actually pressed or not. This is true for the whole time the button is pressed
     public boolean isPressed;
-    // Was the button JUST pressed (True only for the first loop when isPressed is true)
+    // Was the button JUST pressed (True only for the first runLoopOnce when isPressed is true)
     public boolean onPress;
-    // Was the button JUST released (True only for the first loop when isPressed is false)
+    // Was the button JUST released (True only for the first runLoopOnce when isPressed is false)
     public boolean onRelease;
 
     public EventButton(String name)
