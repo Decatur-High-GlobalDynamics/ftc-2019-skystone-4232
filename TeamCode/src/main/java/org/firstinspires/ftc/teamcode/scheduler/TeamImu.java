@@ -74,14 +74,8 @@ public class TeamImu
     {
         // Accumulate degrees turned
         double currentHeading = getHeading();
-        double degreesTurned = currentHeading - lastHeading;
+        double degreesTurned = Utils.subtractWithWraparound("IMU Heading", currentHeading, lastHeading, -180, 180);
         lastHeading = currentHeading;
-
-        // Watch for wrap around
-        if (degreesTurned > 180)
-            degreesTurned -= 360;
-        else if (degreesTurned < -180)
-            degreesTurned += 360;
 
         totalDegreesTurned += degreesTurned;
     }

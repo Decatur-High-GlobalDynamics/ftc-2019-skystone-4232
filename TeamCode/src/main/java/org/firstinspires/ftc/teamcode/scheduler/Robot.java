@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.scheduler;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.TeamRobot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ public abstract class Robot
     // When to start stopping turns
     protected double TURN_APPROXIMATION = 3;
 
-    protected static Robot sharedInstance;
+    protected static Robot sharedInstance=null;
 
     protected HardwareMap hardwareMap;
     public BaseLinearOpMode opMode;
@@ -60,24 +60,28 @@ public abstract class Robot
         private LinkedList<String> alerts = new LinkedList<>();
         private int alertCounter = 0;
         // What was logged most recently for each component... used to avoid duplicate messages
-        private Map<String, String> component2MostRecentChange = new HashMap<>();
-
+        private Map<String, String> component2MostRecentStatus = new HashMap<>();
 
     protected Robot() {
         sharedInstance = this;
     }
 
-    public static Robot get() {
-        return sharedInstance;
-    }
-
-    protected void init(Telemetry telemetry, HardwareMap hardwareMap, BaseLinearOpMode baseLinearOpMode)
+    /**
+     * This is called by BaseLinearOpMode to get the robot wired into the scheduler
+     * and to initialize itself. Specific motors, devices, etc should be initialized
+     * in teamInit() which this method calls.
+     * @param telemetry
+     * @param hardwareMap
+     * @param baseLinearOpMode
+     */
+    void init(Telemetry telemetry, HardwareMap hardwareMap, BaseLinearOpMode baseLinearOpMode)
     {
         this.telemetry   = telemetry;
         this.hardwareMap = hardwareMap;
         opMode = baseLinearOpMode;
         teamImu = new TeamImu(hardwareMap, telemetry);
         correctHeading = teamImu.getTotalDegreesTurned();
+        teamInit();
     }
 
     // TODO... these are assuming a tank drive... We'll deal with this when we have something better
@@ -87,6 +91,8 @@ public abstract class Robot
     public abstract double getDriveWheelEncoderClicksPerInch();
 
     public abstract String getRobotTag();
+
+    protected abstract void teamInit();
 
     /**
      *
@@ -195,23 +201,35 @@ public abstract class Robot
                     }});
     }
 
-    public void logChange(String component, String format, Object... args) {
-        String changeMessage = safeStringFormat(format, args);
+    /**
+     * Note that a command was sent to a component. Call this every time you command a component
+     * and do not worry about duplicate log entries; this method will automatically avoid such
+     * duplicates.
+     *
+     * However, it helps a lot to round your values to tenths so micro changes are not logged.
+     * In other words, use %.1f in your statusFormat instead of %f.
+     *
+     * @param component
+     * @param statusFormat
+     * @param args
+     */
+    public void documentComponentStatus(String component, String statusFormat, Object... args) {
+        String currentStatus = safeStringFormat(statusFormat, args);
 
-        String previousChangeMessage = component2MostRecentChange.get(component);
+        String previousStatus = component2MostRecentStatus.get(component);
 
-        if ( previousChangeMessage==null || !previousChangeMessage.equals(changeMessage) )
+        if ( previousStatus==null || !previousStatus.equals(currentStatus) )
         {
             log("TeamRobot change: %s: %s (was %s)",
-                    component, changeMessage,
-                    previousChangeMessage==null ? "unknown" : previousChangeMessage);
-            component2MostRecentChange.put(component, changeMessage);
+                    component, currentStatus,
+                    previousStatus==null ? "unknown" : previousStatus);
+            component2MostRecentStatus.put(component, currentStatus);
         }
     }
 
     public void stopDrivingWheels_raw()
     {
-        logChange("Driving", "Stopping");
+        documentComponentStatus("Driving", "Stopping");
         setRightPower_raw(0);
         setLeftPower_raw(0);
     }
@@ -283,7 +301,7 @@ public abstract class Robot
 
     public void driveStraight_raw(double power)
     {
-        logChange("Driving", "Straight(pow=%.2f)", power);
+        documentComponentStatus("Driving", "Straight(pow=%.2f)", power);
 
         setLeftPower_raw(power);
         setRightPower_raw(power);
@@ -296,7 +314,7 @@ public abstract class Robot
      */
     public void spin_raw(double power)
     {
-        logChange("Driving", "Spin%s(%.2f)", power > 0 ? "Right" : "Left", power);
+        documentComponentStatus("Driving", "Spin%s(%.2f)", power > 0 ? "Right" : "Left", power);
         setLeftPower_raw(power);
         setRightPower_raw(-power);
     }
@@ -315,7 +333,7 @@ public abstract class Robot
 
     public void setDrivingPowers_raw(double leftPower, double rightPower)
     {
-        logChange("Driving","SetDrivingPowers(%.2f,%.2f)", leftPower, rightPower);
+        documentComponentStatus("Driving","SetDrivingPowers(%.2f,%.2f)", leftPower, rightPower);
         setLeftPower_raw(leftPower);
         setRightPower_raw(rightPower);
     }
@@ -336,7 +354,7 @@ public abstract class Robot
     {
         DcMotor.ZeroPowerBehavior originalZeroPowerBehavior = getLeftMotor().getZeroPowerBehavior();
 
-        logChange("DrivingMotorMode", "setDrivingZeroPowerBehavior(%s)", behavior);
+        documentComponentStatus("DrivingMotorMode", "setDrivingZeroPowerBehavior(%s)", behavior);
         getLeftMotor().setZeroPowerBehavior(behavior);
         getRightMotor().setZeroPowerBehavior(behavior);
 
@@ -355,7 +373,7 @@ public abstract class Robot
 
     private void setLeftPower_raw(double leftPower)
     {
-        logChange(safeStringFormat("Left(Port%d)MotorPower", getLeftMotor().getPortNumber()),
+        documentComponentStatus(safeStringFormat("Left(Port%d)MotorPower", getLeftMotor().getPortNumber()),
             "Power(%.2f)", leftPower);
 
         getLeftMotor().setPower(leftPower);
@@ -375,7 +393,7 @@ public abstract class Robot
 
     private void setRightPower_raw(double rightPower)
     {
-        logChange(safeStringFormat("Right(Port%d)MotorPower", getRightMotor().getPortNumber()),
+        documentComponentStatus(safeStringFormat("Right(Port%d)MotorPower", getRightMotor().getPortNumber()),
                 "Power(%.2f)", rightPower);
 
         getRightMotor().setPower(rightPower);
@@ -399,7 +417,7 @@ public abstract class Robot
      */
     void setPowerSteering_raw(double power, double steering)
     {
-        logChange("Driving", "Steer(pow=%.2f, steering=%.2f)", power, steering);
+        documentComponentStatus("Driving", "Steer(pow=%.2f, steering=%.2f)", power, steering);
 
         double powerRight, powerLeft;
 
@@ -431,7 +449,7 @@ public abstract class Robot
         setPowerSteering_raw(power, steering);
     }
 
-    public void trackMovementSpeed()
+    protected void trackMovementSpeeds()
     {
         int currentLeftWheelPosition = getLeftWheelPosition();
         int currentRightWheelPosition = getRightWheelPosition();
@@ -448,7 +466,7 @@ public abstract class Robot
     }
 
     // Protect robot
-    public void protectRobot() {
+    protected void protectRobot() {
     }
 
     public EndableAction startInchMove(final double inches, final double power)
@@ -487,7 +505,7 @@ public abstract class Robot
             }
 
             @Override
-            public void loop()
+            public void loop() throws InterruptedException
             {
                 // Stop when we've gone far enough
                 if (getWheelPosition() >= stopPosition)
@@ -545,6 +563,10 @@ public abstract class Robot
         }.start();
     }
 
+    public double getCRServoPosition(CRServo servo) {
+        return servo.getController().getServoPosition(servo.getPortNumber());
+    }
+
     /**
      * How far off is the robot from the correct heading?
      * @return Degrees: < 0 ==> TeamRobot needs to turn Right, >0 ==> TeamRobot needs to turn Left
@@ -576,7 +598,7 @@ public abstract class Robot
             }
 
             @Override
-            public void loop()
+            public void loop() throws InterruptedException
             {
                 // Stop when we've gone far enough
                 if (getWheelPosition() <= stopPosition)
@@ -654,7 +676,7 @@ public abstract class Robot
     public void resetCorrectHeading(String reasonFormat, Object... reasonArgs)
     {
         String reason = safeStringFormat(reasonFormat, reasonArgs);
-        logChange("Heading", "ResetHeading(%.1f deg, %s)", getTotalDegreesTurned(), reason);
+        documentComponentStatus("Heading", "ResetHeading(%.1f deg, %s)", getTotalDegreesTurned(), reason);
         correctHeading = getTotalDegreesTurned();
     }
 
@@ -709,7 +731,7 @@ public abstract class Robot
             }
 
             @Override
-            public void loop()
+            public void loop() throws InterruptedException
             {
                 super.loop();
                 double degreesToGo = getHeadingError();
@@ -787,7 +809,7 @@ public abstract class Robot
             }
 
             @Override
-            public void loop()
+            public void loop() throws InterruptedException
             {
                 super.loop();
                 double degreesToGo = getHeadingError();
@@ -845,7 +867,7 @@ public abstract class Robot
             }
 
             @Override
-            public void loop()
+            public void loop() throws InterruptedException
             {
                 waitFor(startInchMove(5,0.5));
                 waitFor(startTurningRight(20, TURN_TYPE.SPIN));
@@ -880,7 +902,7 @@ public abstract class Robot
             }
 
             @Override
-            public void loop()
+            public void loop() throws InterruptedException
             {
                 waitFor(startInchMove(5, 0.5));
                 waitFor(startTurningLeft(20, TURN_TYPE.SPIN));
@@ -896,7 +918,7 @@ public abstract class Robot
 
     public void resetMotorEncoder(String motorName, DcMotor motor)
     {
-        logChange(motorName + "Motor-Encoder", "Reset encoder");
+        documentComponentStatus(motorName + "Motor-Encoder", "Reset encoder");
 
         DcMotor.RunMode originalMode = motor.getMode();
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -991,7 +1013,7 @@ public abstract class Robot
     {
         DcMotor.RunMode originalMode = getLeftMotor().getMode();
 
-        logChange("DrivingMotorMode", "Setting mode to %s (was %s)", newMode, originalMode);
+        documentComponentStatus("DrivingMotorMode", "Setting mode to %s (was %s)", newMode, originalMode);
         getLeftMotor().setMode(newMode);
         getRightMotor().setMode(newMode);
 

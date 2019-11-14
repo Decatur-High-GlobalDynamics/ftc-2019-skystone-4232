@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 /**
  * OngoingAction represents an action that will be occurring for some time.
- * From when it is constructed, loop() will be called periodically, and
+ * From when it is constructed, runLoopOnce() will be called periodically, and
  * isUsingDcMotor(), isUsingServo() will be checked to make sure that only
  * one OngoingAction is controlling each robot component.
  *
@@ -31,7 +31,7 @@ public abstract class OngoingAction extends Action{
     }
 
     // Only called by scheduler
-    protected void loop()
+    protected void loop() throws InterruptedException
     {
     }
 

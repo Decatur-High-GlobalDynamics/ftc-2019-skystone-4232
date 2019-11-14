@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.scheduler;
 
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,6 +31,8 @@ public abstract class Action {
     final String ancesterLabels;
     long startTime_ns = 0;
     long finishTime_ns=0;
+    Telemetry.Line telemetryStatusLine;
+
 
     public static Action getCurrentAction()
     {
@@ -70,10 +75,23 @@ public abstract class Action {
         startTime_ns= System.nanoTime();
         finishTime_ns=0;
         Scheduler.get().actionStarted(this);
+        startTelemetry();
+
         log("Started");
 
         return this;
     }
+
+    protected void startTelemetry() {
+        telemetryStatusLine = telemetryStatusLine = Scheduler.get().getTelemetry().addLine();
+        telemetryStatusLine.addData("Action", new Func<Object>() {
+            @Override
+            public Object value() {
+                return Robot.sharedInstance.saveTelemetryData("A-"+label, "%s -- %s", toShortString(), status);
+            }
+        });
+    }
+
 
     public void log(String messageFormat, Object... args)
     {
@@ -90,7 +108,7 @@ public abstract class Action {
             return;
 
         status = newStatus;
-        log("Status changed after %.2f secs: %s",
+        log("Status changed after %.1f secs: %s",
                 (System.nanoTime()-statusTime_ns)/1e9, status);
 
         statusTime_ns = System.nanoTime();
@@ -113,13 +131,13 @@ public abstract class Action {
         else if ( finishTime_ns > 0 )
             return safeStringFormat("[dur=%.2f secs]", 1.0*(finishTime_ns - startTime_ns)/1e9);
         else
-            return safeStringFormat("[age=%.2f secs]", 1.0*(System.nanoTime() - startTime_ns)/1e9);
+            return safeStringFormat("[age=%d secs]", (int)(1.0*(System.nanoTime() - startTime_ns)/1e9));
 
     }
 
     public String toShortString()
     {
-        return safeStringFormat("%d-%s%s", actionID, label, getTimingString());
+        return safeStringFormat("%s%s", label, getTimingString());
     }
 
     public String toLongString()
@@ -196,7 +214,7 @@ public abstract class Action {
     }
 
 
-    public void actionSleep(final long sleep_ms, final String reason)
+    public void actionSleep(final long sleep_ms, final String reason) throws InterruptedException
     {
         EndableAction sleepAction =
                 new EndableAction("Sleep", "Sleep(%d ms, %s)", sleep_ms, reason)
@@ -206,7 +224,7 @@ public abstract class Action {
                     @Override
                     public boolean isDone(StringBuilder statusMessage)
                     {
-                        statusMessage.append(safeStringFormat("%d secs of actionSleep left", (stopTime_ms- System.currentTimeMillis())/1000));
+                        statusMessage.append(safeStringFormat("%d secs of sleep left", (stopTime_ms- System.currentTimeMillis())/1000));
                         return System.currentTimeMillis()>=stopTime_ms;
                     }
                 }.start();
@@ -215,9 +233,10 @@ public abstract class Action {
     }
 
 
-    public void waitFor(EndableAction... actions)
+    public void waitFor(EndableAction... actions) throws InterruptedException
     {
-        // remove null actions
+        String startingStatus = status;
+
         for(EndableAction a:actions)
         {
             if (a != null)
@@ -226,10 +245,8 @@ public abstract class Action {
 
         while (waitingToComplete.size() > 0)
         {
-            setStatus("Waiting for %d actions to complete, including %s",
-                    waitingToComplete.size(), waitingToComplete.iterator().next().label);
             // Keep the scheduler looping while we wait
-            Scheduler.get().loop();
+            Scheduler.get().runLoopOnce();
 
             // Remove any completed actions
             Iterator<EndableAction> endableActionIterator = waitingToComplete.iterator();
@@ -243,7 +260,7 @@ public abstract class Action {
         }
     }
 
-    public void waitForChildren()
+    public void waitForChildren() throws InterruptedException
     {
         for (Action action : childActions)
         {
@@ -267,5 +284,16 @@ public abstract class Action {
         else
             return true;
     }
+
+    protected void cleanup(boolean actionWasCompletedsSuccessfully)
+    {
+        if ( telemetryStatusLine != null )
+        {
+            Scheduler.get().getTelemetry().removeLine(telemetryStatusLine);
+            Robot.sharedInstance.removeTelemetryData("A-" + label);
+        }
+    }
+
+
 
 }

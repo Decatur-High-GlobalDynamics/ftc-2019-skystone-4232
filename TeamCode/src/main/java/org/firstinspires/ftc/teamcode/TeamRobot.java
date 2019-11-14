@@ -2,20 +2,39 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.scheduler.Robot;
-import org.firstinspires.ftc.teamcode.scheduler.TeamImu;
+import org.firstinspires.ftc.teamcode.scheduler.Utils;
 
 public class TeamRobot extends Robot
 {
+    // TODO: These need to be determined by experiment
+    static final double GATE_ARM_EXTENDED_POSITION=0.82;
+    static final double GATE_ARM_FOLDED_POSITION=0.0;
+    static final double GATE_ARM_HORIZONTAL_POSITION=0.7;
+
+    static final double ARM_SWING_FOLDED_POSITION=0;
+    static final double ARM_SWING_EXTENDED_POSITION=1.0;
+
+    static final double GRABBER_GRAB_POWER=0.10;
+    static final double GRABBER_RELEASE_POWER=-0.10;
+
     public DcMotor leftDrive;
     public DcMotor rightDrive;
-    public CRServo gateServo;
-    public CRServo wheelServoLeft;
-    public CRServo wheelServoRight;
 
-    double previousGatePosition;
-    double previousIntakeLeftPostition;
-    double previousIntakeRightPosition;
+    public Servo armSwingServo;
+    public CRServo blockGrabberServo;
+
+    public Servo gateServo;
+    public CRServo intakeServoLeft;
+    public CRServo intakeServoRight;
+
+    double previousIntakeLeftPostition, previousIntakeRightPosition;
+    double intakeLeftSpeed, intakeRightSpeed;
 
     public static TeamRobot get(){
         return (TeamRobot) Robot.sharedInstance;
@@ -24,26 +43,76 @@ public class TeamRobot extends Robot
     public TeamRobot(){
     }
 
-    public void init(Telemetry telemetry, HardwareMap hardwareMap, BaseLinearOpMode baseLinearOpMode) {
-        super.init(telemetry, hardwareMap, baseLinearOpMode);
-        leftDrive = hardwareMap.dcMotor.get("left_drive");
-        rightDrive = hardwareMap.dcMotor.get("right_drive");
-        gateServo = hardwareMap.crservo.get("gate");
-        wheelServoLeft = hardwareMap.crservo.get("wheel_left");
-        wheelServoRight = hardwareMap.crservo.get("wheel_right");
-        previousLeftWheelPosition = leftDrive.getCurrentPosition();
-        previousRightWheelPosition = rightDrive.getCurrentPosition();
-        previousGatePosition = gateServo.getController().getServoPosition(0);
-        previousIntakeLeftPostition = wheelServoLeft.getController().getServoPosition(2);
-        previousIntakeRightPosition = wheelServoRight.getController().getServoPosition(1);
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
-        wheelServoLeft.setDirection(DcMotor.Direction.REVERSE);
-        wheelServoRight.setDirection(DcMotor.Direction.FORWARD);
-        stopDrivingWheels_raw();
-        setDrivingMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    /**
+     * Set the intake wheels spinning. Positive power is intake
+     * @param power
+     */
+    public void setIntakePower(double power){
+        intakeServoLeft.setPower(power);
+        intakeServoRight.setPower(power);
+        documentComponentStatus("Intake Servos","SetIntakePowers(%.2f,%s)",
+                power, power>0?"in":"out");
     }
 
+    // This is called by BaseLinearOpMode
+    protected void teamInit() {
+        leftDrive = hardwareMap.dcMotor.get("left_drive");
+        rightDrive = hardwareMap.dcMotor.get("right_drive");
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        setDrivingMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        stopDrivingWheels_raw();
+
+        gateServo = hardwareMap.servo.get("gate");
+        intakeServoLeft = hardwareMap.crservo.get("intake_left");
+        intakeServoRight = hardwareMap.crservo.get("intake_right");
+        intakeServoLeft.setDirection(DcMotor.Direction.REVERSE);
+        intakeServoRight.setDirection(DcMotor.Direction.FORWARD);
+
+        blockGrabberServo = hardwareMap.crservo.get("block_grabber");
+        armSwingServo = hardwareMap.servo.get("arm_swing");
+
+        // Make sure gate arm is out of the way
+        setGateServoPosition(GATE_ARM_HORIZONTAL_POSITION);
+        Utils.sleepUninterruptably(1000);
+        setArmSwingServoPosition(ARM_SWING_FOLDED_POSITION);
+        releaseBlock();
+        Utils.sleepUninterruptably(1000);
+        setGateServoPosition(GATE_ARM_FOLDED_POSITION);
+    }
+
+    @Override
+    protected void setupRobotTelemetry(Telemetry telemetry)
+    {
+        super.setupRobotTelemetry(telemetry);
+        telemetry.addLine("Intake: ")
+                .addData("", new Func<String>() {
+                    @Override
+                    public String value()
+                    {
+                        return saveTelemetryData("Intake", "|left-pwr=%.1f/spd=%.2f|right-pwr==%.1f/spd=%.2f",
+                                intakeServoLeft.getPower(), intakeLeftSpeed,
+                                intakeServoRight.getPower(), intakeRightSpeed);
+                    }});
+
+        telemetry.addLine("Gate: ")
+                .addData("", new Func<String>() {
+                    @Override
+                    public String value()
+                    {
+                        return saveTelemetryData("Gate", "|pos=%.2f",
+                                gateServo.getPosition());
+                    }});
+        telemetry.addLine("Arm: ")
+                .addData("", new Func<String>() {
+                    @Override
+                    public String value()
+                    {
+                        return saveTelemetryData("Arm", "|SwingPos=%.2f|GrabberPow=%.2f(%s)",
+                                armSwingServo.getPosition(), blockGrabberServo.getPower(),
+                                blockGrabberServo.getPower()>0.5 ? "release" : "grab");
+                    }});
+    }
 
     @Override
     public DcMotor getLeftMotor()
@@ -72,12 +141,53 @@ public class TeamRobot extends Robot
         return "Team4232";
     }
 
+
+    @Override
+    protected void trackMovementSpeeds()
+    {
+        super.trackMovementSpeeds();
+        double currentLeftIntakeServoPosition = getCRServoPosition(intakeServoLeft);
+        double currentRightIntakeServoPosition = getCRServoPosition(intakeServoRight);
+        intakeLeftSpeed = Utils.subtractWithWraparound("LeftIntakeServo", currentLeftIntakeServoPosition, previousIntakeLeftPostition, 0, 1);
+        intakeRightSpeed = Utils.subtractWithWraparound("RightIntakeServo", currentRightIntakeServoPosition, previousIntakeRightPosition, 0, 1);
+    }
+
     @Override
     public void protectRobot() {
-        if (gateServo.getPower() > 0.05 && ((Math.abs(gateServo.getController().getServoPosition(0) - previousGatePosition) < 0.001) || (Math.abs(gateServo.getController().getServoPosition(0))) > 0.99)) {
-            gateServo.setPower(0);
-            telemetry.addData("Gate Servo: ", "stopped");
-        }
-        if (wheelServoLeft.getPower() > 0.05 && (Math.abs()))
+//        if (gateServo.getPower() > 0.05 && Math.abs(gateServoSpeed) < 0.001) {
+//            alert("GateServo is stuck: power=%.2f, speed=%.3f", gateServo.getPower(), gateServoSpeed);
+//            setGateServoPosition(0);
+//        }
+    }
+
+    public void setGateServoPosition(double position)
+    {
+        position= Utils.clipValue("GateServoPosition", position, GATE_ARM_FOLDED_POSITION, GATE_ARM_EXTENDED_POSITION);
+        documentComponentStatus("GateServo", "Setting Gate position to %.2f", position);
+        gateServo.setPosition(position);
+    }
+
+    public void setArmSwingServoPosition(double position)
+    {
+        position= Utils.clipValue("ArmSwingPosition", position, ARM_SWING_FOLDED_POSITION, ARM_SWING_EXTENDED_POSITION);
+        documentComponentStatus("ArmSwingServo", "Setting ArmSwing position to %.2f", position);
+        armSwingServo.setPosition(position);
+    }
+
+    public void grabBlock()
+    {
+        setBlockGrabberServoPower(GRABBER_GRAB_POWER);
+    }
+
+    public void releaseBlock()
+    {
+        setBlockGrabberServoPower(GRABBER_RELEASE_POWER);
+    }
+
+    public void setBlockGrabberServoPower(double power)
+    {
+        power= Utils.clipValue("BlockGrabberPower", power, -1.0, 1.0);
+        documentComponentStatus("BlockGrabberServo", "Setting BlockGrabber power to %.2f", power);
+        blockGrabberServo.setPower(power);
     }
 }

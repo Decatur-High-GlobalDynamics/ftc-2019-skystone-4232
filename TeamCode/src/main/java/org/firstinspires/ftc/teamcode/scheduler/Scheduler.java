@@ -33,7 +33,7 @@ public class Scheduler {
     long lastLoopEndTime_ns = 0;
     long lastLoopDuration_ns = 0;
 
-    // Keep recent loop intervals
+    // Keep recent runLoopOnce intervals
     // How fast are the loops... ObservationTime (ms time) --> LoopEnd-LoopStart (ms)
     // This keeps the delays between the loops for LOOP_TIME_MOVING_AVERAGE_MS
 
@@ -64,7 +64,7 @@ public class Scheduler {
                 .addData("Scheduler", new Func<Object>() {
                     @Override
                     public Object value() {
-                        return TeamRobot.get().saveTelemetryData("Scheduler", "% loops. Average loop time over last %.1f seconds: ~%.0f)",
+                        return Robot.sharedInstance.saveTelemetryData("Scheduler", "% loops. Average runLoopOnce time over last %.1f seconds: ~%.0f)",
                                 loopNumber,
                                 LOOP_TIME_MOVING_AVERAGE_MS/1000,
                                 loopDurationHistory_ns.getAverage()/1e6);
@@ -75,6 +75,10 @@ public class Scheduler {
     Telemetry getTelemetry()
     {
         return schedulerController.getTelemetry();
+    }
+
+    public Action getCurrentAction() {
+        return currentAction;
     }
 
     void actionStarted(Action a)
@@ -102,7 +106,13 @@ public class Scheduler {
         }
     }
 
-    public void loop(){
+    /**
+     * This runs through the scheduled actions.
+     *
+     *
+     * @throws InterruptedException
+     */
+    void runLoopOnce() throws InterruptedException {
         if (schedulerController.shouldSchedulerStop())
         {
             log_raw("Scheduler is stopping!");
@@ -112,13 +122,13 @@ public class Scheduler {
         if ( System.currentTimeMillis() >= schedulerStatusLog_lastLogTime_ms+schedulerStatusLogInterval_ms )
             logSchedulerStatus();
 
-        // Are we starting a loop or are we re-entering loop?...
+        // Are we starting a runLoopOnce or are we re-entering runLoopOnce?...
         Action currentActionWhenSchedulerLoopStarted = currentAction;
 
         if ( currentActionWhenSchedulerLoopStarted==null )
         {
             loopNumber++;
-            // starting a new loop. Give other things a chance first
+            // starting a new runLoopOnce. Give other things a chance first
             // TODO: This could sleep long enough to slow down to a target looping rate (eg 20 loops/sec)
             schedulerController.schedulerSleep(1);
             lastLoopStartTime_ns = System.nanoTime();
@@ -128,13 +138,13 @@ public class Scheduler {
             {
                 if (((EndableAction) currentActionWhenSchedulerLoopStarted).wasAborted())
                 {
-                    log_raw("Action was aborted after it called loop(): %s", currentActionWhenSchedulerLoopStarted);
+                    log_raw("Action was aborted after it called runLoopOnce(): %s", currentActionWhenSchedulerLoopStarted);
                     throw new StopActionException("Cleanup after being aborted");
                 }
             }
         }
 
-        // Run .loop on all ongoing actions
+        // Run .runLoopOnce on all ongoing actions
         for(OngoingAction a : new ArrayList<>(ongoingActions))
         {
             // Skip/Clean up any ongoing actions that have finished.
@@ -155,7 +165,7 @@ public class Scheduler {
             try
             {
                 currentAction = a;
-                runOngoingActionLoopMethod(a);
+                runAnOngoingActionLoopMethod(a);
             } finally
             {
                 currentAction = currentActionWhenSchedulerLoopStarted;
@@ -167,9 +177,9 @@ public class Scheduler {
         loopDurationHistory_ns.put(lastLoopDuration_ns);
     }
 
-    private void runOngoingActionLoopMethod(OngoingAction a)
+    private void runAnOngoingActionLoopMethod(OngoingAction a) throws InterruptedException
     {
-        // Run loop() if it has been long enough
+        // Run runLoopOnce() if it has been long enough
         long timeSinceLoopWasCalled_ns = System.nanoTime() - a.lastLoopStart_ns;
 
         if(timeSinceLoopWasCalled_ns > 1e6 * MINIMUM_TIME_BETWEEN_ACTION_LOOPS_MS)
@@ -234,7 +244,7 @@ public class Scheduler {
         schedulerStatusLog_lastLogTime_ms = System.currentTimeMillis();
     }
 
-    public void sleep(long time_ms, String reasonFormat, Object... reasonArgs)
+    public void sleep(long time_ms, String reasonFormat, Object... reasonArgs) throws InterruptedException
     {
         String reason = safeStringFormat(reasonFormat, reasonArgs);
         if (currentAction != null )
@@ -244,12 +254,12 @@ public class Scheduler {
             long sleepStop_ms = System.currentTimeMillis() + time_ms;
             while ( System.currentTimeMillis() < sleepStop_ms )
             {
-                loop();
+                runLoopOnce();
             }
         }
     }
 
-    public void waitForActionToFinish(EndableAction endableAction)
+    public void waitForActionToFinish(EndableAction endableAction) throws InterruptedException
     {
         if (currentAction!=null)
             currentAction.waitFor(endableAction);

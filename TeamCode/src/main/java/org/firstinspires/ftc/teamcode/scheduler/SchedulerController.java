@@ -16,7 +16,7 @@ public interface SchedulerController
      *
      *  Note: This cannot use Scheduler.sleep() as that would be recursive!
      */
-    public void schedulerSleep(long time_ms);
+    public void schedulerSleep(long time_ms) throws InterruptedException;
     public Telemetry getTelemetry();
 
     // not used yet... hoping to separate Scheduler from FTC classes
