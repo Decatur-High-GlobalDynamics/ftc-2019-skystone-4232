@@ -32,6 +32,9 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
             robot.setArmSwingServoPosition(robot.armSwingServo.getPosition()-0.05);
         if (gp2.dpad_right.isPressed)
             robot.setArmSwingServoPosition(robot.armSwingServo.getPosition()+0.05);
+
+
+
     }
 
     @Override

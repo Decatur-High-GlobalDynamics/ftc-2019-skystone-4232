@@ -73,12 +73,9 @@ public class TeamRobot extends Robot
         armSwingServo = hardwareMap.servo.get("arm_swing");
 
         // Make sure gate arm is out of the way
-        setGateServoPosition(GATE_ARM_HORIZONTAL_POSITION);
-        Utils.sleepUninterruptably(1000);
+        setGateServoPosition(GATE_ARM_FOLDED_POSITION);
         setArmSwingServoPosition(ARM_SWING_FOLDED_POSITION);
         releaseBlock();
-        Utils.sleepUninterruptably(1000);
-        setGateServoPosition(GATE_ARM_FOLDED_POSITION);
     }
 
     @Override

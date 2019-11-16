@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 
 import java.util.Locale;
 
+import static org.firstinspires.ftc.teamcode.scheduler.Utils.safeStringFormat;
+
 public class TeamImu
 {
     // Gyro
@@ -116,7 +118,7 @@ public class TeamImu
                     @Override
                     public Object value() {
                         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-                        return String.format("Hdg: %.2f, Roll: %.2f, Pitch: %.2f",
+                        return safeStringFormat("Hdg: %.2f, Roll: %.2f, Pitch: %.2f",
                                 angles.firstAngle, angles.secondAngle, angles.thirdAngle);
                     }
                 });
