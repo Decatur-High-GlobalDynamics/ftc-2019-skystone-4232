@@ -20,7 +20,8 @@ public class PushFoundationRight extends BaseAutonomousOpMode<TeamRobot> {
     @Override
     public void teamRun() {
         try {
-            robot.startInchMove(5, 0.5).waitUntilFinished();
+            robot.startInchMoveBack(25, -0.5).waitUntilFinished();
+            /*robot.startInchMove(5, 0.5).waitUntilFinished();
             robot.startStopping().waitUntilFinished();
             robot.startTurningRight(90).waitUntilFinished();
             robot.startStopping().waitUntilFinished();
@@ -47,7 +48,7 @@ public class PushFoundationRight extends BaseAutonomousOpMode<TeamRobot> {
             robot.startTurningRight(90).waitUntilFinished();
             robot.startStopping().waitUntilFinished();
             robot.startInchMove(50.5, 0.75).waitUntilFinished();
-            robot.startStopping().waitUntilFinished();
+            robot.startStopping().waitUntilFinished();*/
         } catch (Exception e) {}
     }
 }

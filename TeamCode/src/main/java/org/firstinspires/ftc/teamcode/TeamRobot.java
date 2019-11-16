@@ -23,11 +23,21 @@ public class TeamRobot extends Robot
     static final double GRABBER_GRAB_POWER=0.10;
     static final double GRABBER_RELEASE_POWER=-0.10;
 
+    public static enum ARM_POSITION {DOWN, MID, TOP};
+
+    int startArmPos;
+    static final int MEDIUM_POS = 120;
+    static final int TOP_POS = 257;
+
+    public ARM_POSITION currentPos = ARM_POSITION.DOWN;
+
     public DcMotor leftDrive;
     public DcMotor rightDrive;
+    public DcMotor armRaiseMotor;
 
     public Servo armSwingServo;
     public CRServo blockGrabberServo;
+
 
     public Servo gateServo;
     public CRServo intakeServoLeft;
@@ -71,6 +81,17 @@ public class TeamRobot extends Robot
 
         blockGrabberServo = hardwareMap.crservo.get("block_grabber");
         armSwingServo = hardwareMap.servo.get("arm_swing");
+        armRaiseMotor = hardwareMap.dcMotor.get("arm");
+        armRaiseMotor.setPower(0);
+        //Reset encoder
+        armRaiseMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //Get position just in case
+        startArmPos = armRaiseMotor.getCurrentPosition();
+        //Run to position is super cool. It ensures that you always go to position
+        armRaiseMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armRaiseMotor.setTargetPosition(startArmPos);
+        //This power isn't actually used unless you aren't at position
+        armRaiseMotor.setPower(1);
 
         // Make sure gate arm is out of the way
         setGateServoPosition(GATE_ARM_FOLDED_POSITION);
@@ -105,9 +126,11 @@ public class TeamRobot extends Robot
                     @Override
                     public String value()
                     {
-                        return saveTelemetryData("Arm", "|SwingPos=%.2f|GrabberPow=%.2f(%s)",
+                        return saveTelemetryData("Arm", "|SwingPos=%.2f|GrabberPow=%.2f(%s)|LiftPos=%d|LiftPow=%.1f",
                                 armSwingServo.getPosition(), blockGrabberServo.getPower(),
-                                blockGrabberServo.getPower()>0.5 ? "release" : "grab");
+                                blockGrabberServo.getPower()>0.5 ? "release" : "grab",
+                                armRaiseMotor.getCurrentPosition(),
+                                armRaiseMotor.getPower());
                     }});
     }
 
@@ -129,7 +152,7 @@ public class TeamRobot extends Robot
     public double getDriveWheelEncoderClicksPerInch()
     {
         // TODO: TBD
-        return 50;
+        return 79.9446494465;
     }
 
     @Override
@@ -151,6 +174,10 @@ public class TeamRobot extends Robot
 
     @Override
     public void protectRobot() {
+        if (armRaiseMotor.getCurrentPosition() < 20 && armRaiseMotor.getPower() < 0) {
+            alert("Stopping arm motor because it is too low");
+            armRaiseMotor.setPower(0);
+        }
 //        if (gateServo.getPower() > 0.05 && Math.abs(gateServoSpeed) < 0.001) {
 //            alert("GateServo is stuck: power=%.2f, speed=%.3f", gateServo.getPower(), gateServoSpeed);
 //            setGateServoPosition(0);
@@ -186,5 +213,29 @@ public class TeamRobot extends Robot
         power= Utils.clipValue("BlockGrabberPower", power, -1.0, 1.0);
         documentComponentStatus("BlockGrabberServo", "Setting BlockGrabber power to %.2f", power);
         blockGrabberServo.setPower(power);
+    }
+
+    public void setArmPower(double power) {
+        documentComponentStatus("ArmRaiseMotor", "SettingArmRaiseMotor power to %.2f", power);
+        armRaiseMotor.setPower(power);
+    }
+
+    public void moveArmUp() {
+        if (currentPos == ARM_POSITION.DOWN) {
+            currentPos = ARM_POSITION.MID;
+            armRaiseMotor.setTargetPosition(startArmPos + MEDIUM_POS);
+        } else if (currentPos == ARM_POSITION.MID) {
+            currentPos = ARM_POSITION.TOP;
+            armRaiseMotor.setTargetPosition(startArmPos + TOP_POS);
+        }
+    }
+    public void moveArmDown() {
+        if (currentPos == ARM_POSITION.TOP) {
+            currentPos = ARM_POSITION.MID;
+            armRaiseMotor.setTargetPosition(startArmPos + MEDIUM_POS);
+        } else if (currentPos == ARM_POSITION.MID) {
+            currentPos = ARM_POSITION.DOWN;
+            armRaiseMotor.setTargetPosition(startArmPos);
+        }
     }
 }

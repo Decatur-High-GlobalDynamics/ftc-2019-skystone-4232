@@ -20,10 +20,7 @@ public class AutoParkLeft extends BaseAutonomousOpMode<TeamRobot> {
     @Override
     public void teamRun() {
         try {
-            robot.startInchMove(10, 0.5).waitUntilFinished();
-            robot.startStopping().waitUntilFinished();
-            robot.startTurningLeft(90);
-            robot.startInchMove(24, 0.5).waitUntilFinished();
+            robot.startInchMove(45, 0.5).waitUntilFinished();
             robot.startStopping().waitUntilFinished();
         } catch (Exception e) {}
     }

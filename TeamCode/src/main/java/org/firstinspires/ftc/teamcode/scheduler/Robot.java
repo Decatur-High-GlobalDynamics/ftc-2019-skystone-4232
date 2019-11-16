@@ -475,7 +475,7 @@ public abstract class Robot
         {
             int startPosition = getWheelPosition();
             int encoderClicks = (int) Math.round(inches * getDriveWheelEncoderClicksPerInch());
-            int stopPosition = getWheelPosition() + encoderClicks;
+            int stopPosition = getWheelPosition() - encoderClicks;
             EndableAction stopAction=null;
 
             @Override
@@ -518,9 +518,9 @@ public abstract class Robot
                 // avoid skidding by using less power for first 10 inches
                 double wheelPower;
                 if ( getWheelPosition() - startPosition < 10*getDriveWheelEncoderClicksPerInch() )
-                    wheelPower = 0.3;
+                    wheelPower = -0.3;
                 else
-                    wheelPower = power;
+                    wheelPower = -power;
 
                 // Example:
                 //   correctHeading: 0  (straight ahead)
@@ -583,7 +583,7 @@ public abstract class Robot
             int startPosition = getLeftWheelPosition();
 
             int encoderClicks = (int)(inches * getDriveWheelEncoderClicksPerInch());
-            int stopPosition = getWheelPosition() - encoderClicks;
+            int stopPosition = getWheelPosition() + encoderClicks;
             EndableAction stopAction=null;
 
             @Override
@@ -612,9 +612,9 @@ public abstract class Robot
                 // avoid skidding by using less power for first 10 inches
                 double wheelPower;
                 if ( startPosition - getWheelPosition() < 10 * getDriveWheelEncoderClicksPerInch() )
-                    wheelPower = 0.3;
+                    wheelPower = -0.3;
                 else
-                    wheelPower = power;
+                    wheelPower = -power;
 
                 //Heading is larger to the left
                 // Example:
