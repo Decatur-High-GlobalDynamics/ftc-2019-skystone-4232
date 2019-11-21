@@ -26,8 +26,8 @@ public class TeamRobot extends Robot
     public static enum ARM_POSITION {DOWN, MID, TOP};
 
     int startArmPos;
-    static final int MEDIUM_POS = 120;
-    static final int TOP_POS = 257;
+    static final int MEDIUM_POS = 131;
+    static final int TOP_POS = 334;
 
     public ARM_POSITION currentPos = ARM_POSITION.DOWN;
 
@@ -42,6 +42,8 @@ public class TeamRobot extends Robot
     public Servo gateServo;
     public CRServo intakeServoLeft;
     public CRServo intakeServoRight;
+
+    public Servo holdServo;
 
     double previousIntakeLeftPostition, previousIntakeRightPosition;
     double intakeLeftSpeed, intakeRightSpeed;
@@ -88,10 +90,13 @@ public class TeamRobot extends Robot
         //Get position just in case
         startArmPos = armRaiseMotor.getCurrentPosition();
         //Run to position is super cool. It ensures that you always go to position
-        armRaiseMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armRaiseMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         armRaiseMotor.setTargetPosition(startArmPos);
         //This power isn't actually used unless you aren't at position
-        armRaiseMotor.setPower(1);
+        //armRaiseMotor.setPower(1);
+
+        holdServo = hardwareMap.servo.get("hold");
+        setHoldServoPosition(0.5);
 
         // Make sure gate arm is out of the way
         setGateServoPosition(GATE_ARM_FOLDED_POSITION);
@@ -237,5 +242,10 @@ public class TeamRobot extends Robot
             currentPos = ARM_POSITION.DOWN;
             armRaiseMotor.setTargetPosition(startArmPos);
         }
+    }
+
+    public void setHoldServoPosition(double position) {
+        documentComponentStatus("Hold Servo", "Setting Hold Servo position to %.2f", position);
+        holdServo.setPosition(position);
     }
 }

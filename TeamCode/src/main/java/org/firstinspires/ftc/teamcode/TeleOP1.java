@@ -15,14 +15,22 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
     protected void teleOpLoop() throws InterruptedException
     {
         robot.setDrivingPowers_teleop(gp1.left_stick_y, gp1.right_stick_y);
-        if (gp2.left_bumper.isPressed) robot.setIntakePower(1);
-        else if (gp2.right_bumper.isPressed) robot.setIntakePower(-1);
-        else robot.setIntakePower(0);
+        if (gp2.left_bumper.isPressed) {
+            robot.setIntakePower(1);
+            robot.setHoldServoPosition(1);
+        } else if (gp2.right_bumper.isPressed) {
+            robot.setIntakePower(-1);
+            robot.setHoldServoPosition(1);
+        } else {
+            robot.setHoldServoPosition(0.5);
+            robot.setIntakePower(0);
+        }
 
         //if(gp2.left_bumper.isPressed){
             robot.setGateServoPosition(-gp2.left_stick_y);
         //}
-        robot.armRaiseMotor.setTargetPosition(robot.armRaiseMotor.getTargetPosition() + (int)(-gp2.right_stick_y * 15));
+        robot.armRaiseMotor.setPower(-gp2.right_stick_y);
+
 
         // GP2 - DPAD-UP/DOWN: grabber
 
