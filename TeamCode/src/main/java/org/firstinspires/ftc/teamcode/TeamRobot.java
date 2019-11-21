@@ -90,7 +90,7 @@ public class TeamRobot extends Robot
         //Get position just in case
         startArmPos = armRaiseMotor.getCurrentPosition();
         //Run to position is super cool. It ensures that you always go to position
-        armRaiseMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         armRaiseMotor.setTargetPosition(startArmPos);
         //This power isn't actually used unless you aren't at position
         //armRaiseMotor.setPower(1);
@@ -131,7 +131,7 @@ public class TeamRobot extends Robot
                     @Override
                     public String value()
                     {
-                        return saveTelemetryData("Arm", "|SwingPos=%.2f|GrabberPow=%.2f(%s)|LiftPos=%d|LiftPow=%.1f",
+                        return saveTelemetryData("Arm", "|SwingPos=%.2f|GrabberPow=%.2f(%s)|LiftPos=%d|LiftPow=%.2f",
                                 armSwingServo.getPosition(), blockGrabberServo.getPower(),
                                 blockGrabberServo.getPower()>0.5 ? "release" : "grab",
                                 armRaiseMotor.getCurrentPosition(),

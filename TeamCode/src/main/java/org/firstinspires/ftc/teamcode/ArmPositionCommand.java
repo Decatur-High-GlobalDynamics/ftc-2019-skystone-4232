@@ -5,11 +5,9 @@ import org.firstinspires.ftc.teamcode.scheduler.Utils;
 
 public class ArmPositionCommand extends OngoingAction {
     static double UP_SPEED = 1.0;
-    static double DOWN_SPEED = -0.3;
+    static double DOWN_SPEED = 0.5;
     static double P = 1/10;
-    static double HOLD_SPEED = 0.3;
-    static double D = 0;
-    int previousError = 0;
+    static double HOLD_SPEED = 0.2;
     TeamRobot robot;
 
     public ArmPositionCommand(String label, TeamRobot robot) {super(label); this.robot = robot;}
@@ -24,9 +22,7 @@ public class ArmPositionCommand extends OngoingAction {
                 robot.armRaiseMotor.setPower(HOLD_SPEED);
             }
         } else {
-            int error = targetPos - currentPos;
-            double deriv = error - previousError;
-            robot.armRaiseMotor.setPower(Utils.clipValue("arm power", error * P + deriv * D, DOWN_SPEED, UP_SPEED));
+            //robot.armRaiseMotor.setMode()
         }
     }
 }
