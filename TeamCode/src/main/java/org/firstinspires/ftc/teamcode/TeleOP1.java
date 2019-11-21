@@ -17,10 +17,10 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
         robot.setDrivingPowers_teleop(gp1.left_stick_y, gp1.right_stick_y);
         if (gp2.left_bumper.isPressed) {
             robot.setIntakePower(1);
-            robot.setHoldServoPosition(1);
+            robot.setHoldServoPosition(0);
         } else if (gp2.right_bumper.isPressed) {
             robot.setIntakePower(-1);
-            robot.setHoldServoPosition(1);
+            robot.setHoldServoPosition(0);
         } else {
             robot.setHoldServoPosition(0.5);
             robot.setIntakePower(0);
