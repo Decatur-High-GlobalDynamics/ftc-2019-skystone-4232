@@ -12,6 +12,7 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
         super(new TeamRobot());
     }
 
+
     @Override
     protected void teleOpLoop() throws InterruptedException {
         robot.setDrivingPowers_teleop(gp1.left_stick_y, gp1.right_stick_y);
@@ -36,11 +37,17 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
             robot.setGateServoPosition(-gp2.left_stick_y);
         //}
         if (gp2.a.onPress) {
-            robot.armRaiseMotor.setPower(Utils.clipValue("arm raise power", robot.armRaiseMotor.getPower()-0.01, -1, 1));
+            robot.currentPos = TeamRobot.ARM_POSITION.DOWN;
+            robot.armRaiseMotor.setTargetPosition(robot.startArmPos);
+        } else if (gp2.b.onPress) {
+            robot.currentPos = TeamRobot.ARM_POSITION.MID;
+            robot.armRaiseMotor.setTargetPosition(robot.startArmPos + TeamRobot.MEDIUM_POS);
         } else if (gp2.y.onPress) {
-            robot.armRaiseMotor.setPower(Utils.clipValue("arm raise power", robot.armRaiseMotor.getPower()+0.01, -1, 1));
+            robot.currentPos = TeamRobot.ARM_POSITION.TOP;
+            robot.armRaiseMotor.setTargetPosition(robot.startArmPos + TeamRobot.TOP_POS);
         }
 
+        robot.armRaiseMotor.setTargetPosition(robot.armRaiseMotor.getTargetPosition() + (int)(gp2.right_stick_y * 15));
 
         // GP2 - DPAD-UP/DOWN: grabber
 
@@ -68,6 +75,6 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
     @Override
     protected void teleOpStart()
     {
-
+        new ArmPositionCommand("Arm position setter", robot).start();
     }
 }
