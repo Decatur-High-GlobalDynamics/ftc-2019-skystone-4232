@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Func;
@@ -23,6 +24,7 @@ public class TeamRobot extends Robot
     static final double GRABBER_GRAB_POWER=0.10;
     static final double GRABBER_RELEASE_POWER=-0.10;
 
+
     public static enum ARM_POSITION {DOWN, MID, TOP};
 
     int startArmPos;
@@ -38,6 +40,7 @@ public class TeamRobot extends Robot
     public Servo armSwingServo;
     public CRServo blockGrabberServo;
 
+    public TouchSensor armTouch;
 
     public Servo gateServo;
     public CRServo intakeServoLeft;
@@ -95,6 +98,8 @@ public class TeamRobot extends Robot
         //This power isn't actually used unless you aren't at position
         //armRaiseMotor.setPower(1);
 
+        armTouch = hardwareMap.touchSensor.get("arm_touch");
+
         holdServo = hardwareMap.servo.get("hold");
         setHoldServoPosition(0.5);
 
@@ -131,11 +136,12 @@ public class TeamRobot extends Robot
                     @Override
                     public String value()
                     {
-                        return saveTelemetryData("Arm", "|SwingPos=%.2f|GrabberPow=%.2f(%s)|LiftPos=%d|LiftPow=%.2f",
+                        return saveTelemetryData("Arm", "|SwingPos=%.2f|GrabberPow=%.2f(%s)|LiftPos=%d|LiftPow=%.2f|Touch Sensor Status= %s",
                                 armSwingServo.getPosition(), blockGrabberServo.getPower(),
                                 blockGrabberServo.getPower()>0.5 ? "release" : "grab",
                                 armRaiseMotor.getCurrentPosition(),
-                                armRaiseMotor.getPower());
+                                armRaiseMotor.getPower(),
+                                armTouch.isPressed()?"Touch sensor pressed":"Touch sensor not pressed");
                     }});
     }
 
@@ -179,9 +185,14 @@ public class TeamRobot extends Robot
 
     @Override
     public void protectRobot() {
-        if (armRaiseMotor.getCurrentPosition() < 20 && armRaiseMotor.getPower() < 0) {
+        if (armTouch.isPressed() && armRaiseMotor.getPower() < 0) {
             alert("Stopping arm motor because it is too low");
             armRaiseMotor.setPower(0);
+        }
+        if (armRaiseMotor.getTargetPosition() > startArmPos + MEDIUM_POS && armSwingServo.getPosition() < 0.5) {
+            alert("Stopping arm motor because the block is not out");
+            armRaiseMotor.setPower(0);
+            armRaiseMotor.setTargetPosition(startArmPos + MEDIUM_POS);
         }
 //        if (gateServo.getPower() > 0.05 && Math.abs(gateServoSpeed) < 0.001) {
 //            alert("GateServo is stuck: power=%.2f, speed=%.3f", gateServo.getPower(), gateServoSpeed);

@@ -6,8 +6,10 @@ import org.firstinspires.ftc.teamcode.scheduler.OngoingAction;
 import org.firstinspires.ftc.teamcode.scheduler.Utils;
 
 public class ArmPositionCommand extends OngoingAction {
-    static double UP_SPEED = 1.0;
-    static double DOWN_SPEED = 0.5;
+    final double UP_SPEED = 1.0;
+    static public double upSpeedTest = 0;
+    static public double downSpeedTest = 0;
+    final double DOWN_SPEED = 0.5;
     static double P = 1/10;
     static double HOLD_SPEED = 0.2;
     //TODO: Test this empirically by setting power to 1 when in run_using_encoder mode
@@ -22,12 +24,19 @@ public class ArmPositionCommand extends OngoingAction {
         int currentPos = robot.armRaiseMotor.getCurrentPosition();
         int error = targetPos - currentPos;
 
+        if (robot.armTouch.isPressed() && targetPos < 5){
+            robot.armRaiseMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
         if (Math.abs(currentPos - targetPos) < 5) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.armRaiseMotor.setPower(HOLD_SPEED);
-        } else {
+        } else if (currentPos < targetPos) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.armRaiseMotor.setPower((3/4 * error) / MOTOR_MAX_SPEED);
+            robot.armRaiseMotor.setPower(upSpeedTest);
+        } else if (targetPos > currentPos) {
+            robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.armRaiseMotor.setPower(downSpeedTest);
         }
     }
 }
