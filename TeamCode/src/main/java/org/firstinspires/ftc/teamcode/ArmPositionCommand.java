@@ -26,6 +26,7 @@ public class ArmPositionCommand extends OngoingAction {
 
         if (robot.armTouch.isPressed() && targetPos < 5){
             robot.armRaiseMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.startArmPos = robot.armRaiseMotor.getCurrentPosition();
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         if (Math.abs(currentPos - targetPos) < 5) {

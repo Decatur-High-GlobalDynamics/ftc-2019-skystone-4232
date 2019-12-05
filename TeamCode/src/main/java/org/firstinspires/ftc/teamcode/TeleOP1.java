@@ -48,7 +48,7 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
         }
 
         if (gp1.a.onPress) {
-            ArmPositionCommand.upSpeedTest += 0.05;
+            ArmPositionCommand.upSpeedTest -= 0.05;
         } else if (gp1.y.onPress) {
             ArmPositionCommand.upSpeedTest += 0.05;
         }
