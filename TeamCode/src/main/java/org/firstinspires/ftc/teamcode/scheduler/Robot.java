@@ -50,7 +50,7 @@ public abstract class Robot
 
     ////
     // Telemetry
-        protected Telemetry telemetry;
+        public Telemetry telemetry;
         private static final int MAX_ALERTS=2;
 
         // Used to log telemetry to RobotLog (in addition to driver station)

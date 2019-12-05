@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.teamcode.scheduler.OngoingAction;
 import org.firstinspires.ftc.teamcode.scheduler.Utils;
 
@@ -16,27 +17,44 @@ public class ArmPositionCommand extends OngoingAction {
     static double MOTOR_MAX_SPEED = 1120;
     TeamRobot robot;
 
-    public ArmPositionCommand(String label, TeamRobot robot) {super(label); this.robot = robot;}
+    public ArmPositionCommand(String label, final TeamRobot robot) {
+        super(label);
+        this.robot = robot;
+        robot.telemetry.addLine("ArmControl: ")
+                .addData("", new Func<String>() {
+                    @Override
+                    public String value() {
+                        return robot.saveTelemetryData("ArmControl",
+                                "TargetPos: %d|CurrentPos: %d|Mode: %s|Pow: %.1f|DownPow: %.1f|HoldPow: %.1f|UpPow: %.1f",
+                                robot.armRaiseMotor.getTargetPosition(),
+                                robot.armRaiseMotor.getCurrentPosition(),
+                                robot.armRaiseMotor.getMode().toString().toLowerCase(),
+                                robot.armRaiseMotor.getPower(),
+                                downSpeedTest, HOLD_SPEED, upSpeedTest
+                                );
+                    }
+                });
+
+    }
 
     @Override
     protected void loop() {
         int targetPos = robot.armRaiseMotor.getTargetPosition();
         int currentPos = robot.armRaiseMotor.getCurrentPosition();
-        int error = targetPos - currentPos;
 
         if (robot.armTouch.isPressed() && targetPos < 5){
             robot.armRaiseMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             robot.startArmPos = robot.armRaiseMotor.getCurrentPosition();
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
-        if (Math.abs(currentPos - targetPos) < 5) {
+        if (Math.abs(currentPos - targetPos) < 5 && !robot.armTouch.isPressed()) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.armRaiseMotor.setPower(HOLD_SPEED);
         } else if (currentPos < targetPos) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             robot.armRaiseMotor.setPower(upSpeedTest);
-        } else if (targetPos > currentPos) {
-            robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        } else if (targetPos < currentPos) {
+            robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.armRaiseMotor.setPower(downSpeedTest);
         }
     }

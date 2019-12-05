@@ -28,7 +28,7 @@ public class TeamRobot extends Robot
     public static enum ARM_POSITION {DOWN, MID, TOP};
 
     int startArmPos;
-    static final int MEDIUM_POS = 131;
+    static final int MEDIUM_POS = 170;
     static final int TOP_POS = 334;
 
     public ARM_POSITION currentPos = ARM_POSITION.DOWN;
