@@ -7,10 +7,8 @@ import org.firstinspires.ftc.teamcode.scheduler.OngoingAction;
 import org.firstinspires.ftc.teamcode.scheduler.Utils;
 
 public class ArmPositionCommand extends OngoingAction {
-    final double UP_SPEED = 1.0;
-    static public double upSpeedTest = 0;
-    static public double downSpeedTest = 0;
-    final double DOWN_SPEED = 0.5;
+    final double UP_SPEED = 0.2;
+    final double DOWN_SPEED = 0.01;
     static double P = 1/10;
     static double HOLD_SPEED = 0.2;
     //TODO: Test this empirically by setting power to 1 when in run_using_encoder mode
@@ -30,7 +28,7 @@ public class ArmPositionCommand extends OngoingAction {
                                 robot.armRaiseMotor.getCurrentPosition(),
                                 robot.armRaiseMotor.getMode().toString().toLowerCase(),
                                 robot.armRaiseMotor.getPower(),
-                                downSpeedTest, HOLD_SPEED, upSpeedTest
+                                UP_SPEED, HOLD_SPEED, DOWN_SPEED
                                 );
                     }
                 });
@@ -42,9 +40,10 @@ public class ArmPositionCommand extends OngoingAction {
         int targetPos = robot.armRaiseMotor.getTargetPosition();
         int currentPos = robot.armRaiseMotor.getCurrentPosition();
 
-        if (robot.armTouch.isPressed() && targetPos < 5){
+        if (robot.armTouch.isPressed() && targetPos < robot.startArmPos + 20){
             robot.armRaiseMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             robot.startArmPos = robot.armRaiseMotor.getCurrentPosition();
+            robot.armRaiseMotor.setTargetPosition(robot.startArmPos);
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         if (Math.abs(currentPos - targetPos) < 5 && !robot.armTouch.isPressed()) {
@@ -52,10 +51,10 @@ public class ArmPositionCommand extends OngoingAction {
             robot.armRaiseMotor.setPower(HOLD_SPEED);
         } else if (currentPos < targetPos) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.armRaiseMotor.setPower(upSpeedTest);
+            robot.armRaiseMotor.setPower(UP_SPEED);
         } else if (targetPos < currentPos) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            robot.armRaiseMotor.setPower(downSpeedTest);
+            robot.armRaiseMotor.setPower(DOWN_SPEED);
         }
     }
 }

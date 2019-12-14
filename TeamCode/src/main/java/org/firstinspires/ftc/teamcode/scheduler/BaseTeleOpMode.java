@@ -37,6 +37,9 @@ public abstract class BaseTeleOpMode<RobotClass extends Robot> extends BaseLinea
     // First TeleOp thing that happens after play button is pressed
     protected abstract void teleOpStart();
 
+    //Stop thingamajig
+    protected abstract void teleOpStop();
+
     // Convert LinearOpMode into OpMode
     @Override
     final protected void teamRun() throws InterruptedException
@@ -47,6 +50,8 @@ public abstract class BaseTeleOpMode<RobotClass extends Robot> extends BaseLinea
         {
             teleOpLoop();
         }
+
+        teleOpStop();
     }
 
 }

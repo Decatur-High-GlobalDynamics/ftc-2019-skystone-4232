@@ -28,8 +28,8 @@ public class TeamRobot extends Robot
     public static enum ARM_POSITION {DOWN, MID, TOP};
 
     int startArmPos;
-    static final int MEDIUM_POS = 170;
-    static final int TOP_POS = 334;
+    static final int MEDIUM_POS = 140;
+    static final int TOP_POS = 329;
 
     public ARM_POSITION currentPos = ARM_POSITION.DOWN;
 
@@ -189,11 +189,11 @@ public class TeamRobot extends Robot
             alert("Stopping arm motor because it is too low");
             armRaiseMotor.setPower(0);
         }
-        if (armRaiseMotor.getTargetPosition() > startArmPos + MEDIUM_POS && armSwingServo.getPosition() < 0.5) {
+        /*if (armRaiseMotor.getTargetPosition() > startArmPos + MEDIUM_POS && armSwingServo.getPosition() < 0.5) {
             alert("Stopping arm motor because the block is not out");
             armRaiseMotor.setPower(0);
             armRaiseMotor.setTargetPosition(startArmPos + MEDIUM_POS);
-        }
+        }*/
 //        if (gateServo.getPower() > 0.05 && Math.abs(gateServoSpeed) < 0.001) {
 //            alert("GateServo is stuck: power=%.2f, speed=%.3f", gateServo.getPower(), gateServoSpeed);
 //            setGateServoPosition(0);
