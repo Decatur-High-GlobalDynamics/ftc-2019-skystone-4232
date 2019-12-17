@@ -47,7 +47,12 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
             robot.armRaiseMotor.setTargetPosition(robot.startArmPos + TeamRobot.TOP_POS);
         }
 
-        robot.armRaiseMotor.setTargetPosition(robot.armRaiseMotor.getTargetPosition() + (int)(gp2.right_stick_y * 5));
+        if (gp2.right_trigger > 0.5) {
+            robot.armRaiseMotor.setTargetPosition(robot.armRaiseMotor.getTargetPosition() + (int)(gp2.right_trigger * 15));
+        } if (gp2.left_trigger > 0.5) {
+            robot.armRaiseMotor.setTargetPosition(robot.armRaiseMotor.getTargetPosition() - (int)(gp2.left_trigger * 15));
+        }
+
 
         // GP2 - DPAD-UP/DOWN: grabber
 

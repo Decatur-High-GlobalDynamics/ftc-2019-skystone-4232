@@ -162,7 +162,6 @@ public class TeamRobot extends Robot
     @Override
     public double getDriveWheelEncoderClicksPerInch()
     {
-        // TODO: TBD
         return 79.9446494465;
     }
 

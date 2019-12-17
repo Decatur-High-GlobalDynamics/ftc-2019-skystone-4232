@@ -45,7 +45,7 @@ public class ArmPositionCommand extends OngoingAction {
             robot.startArmPos = robot.armRaiseMotor.getCurrentPosition();
             robot.armRaiseMotor.setTargetPosition(robot.startArmPos);
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        }
+        } else {
         if (Math.abs(currentPos - targetPos) < 5 && !robot.armTouch.isPressed()) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.armRaiseMotor.setPower(HOLD_SPEED);
@@ -55,6 +55,6 @@ public class ArmPositionCommand extends OngoingAction {
         } else if (targetPos < currentPos) {
             robot.armRaiseMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.armRaiseMotor.setPower(DOWN_SPEED);
-        }
+        }}
     }
 }

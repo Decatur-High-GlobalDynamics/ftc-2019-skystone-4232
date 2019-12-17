@@ -508,7 +508,7 @@ public abstract class Robot
             public void loop() throws InterruptedException
             {
                 // Stop when we've gone far enough
-                if (getWheelPosition() >= stopPosition)
+                if (getWheelPosition() <= stopPosition)
                 {
                     if (stopAction==null)
                         stopAction= startStopping();
@@ -601,7 +601,7 @@ public abstract class Robot
             public void loop() throws InterruptedException
             {
                 // Stop when we've gone far enough
-                if (getWheelPosition() <= stopPosition)
+                if (getWheelPosition() >= stopPosition)
                 {
                     if (stopAction==null)
                         stopAction= startStopping();

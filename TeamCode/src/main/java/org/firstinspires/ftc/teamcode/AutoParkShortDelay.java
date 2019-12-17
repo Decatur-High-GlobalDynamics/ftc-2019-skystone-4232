@@ -4,11 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.scheduler.BaseAutonomousOpMode;
 import org.firstinspires.ftc.teamcode.scheduler.EndableAction;
+import org.firstinspires.ftc.teamcode.scheduler.Scheduler;
 import org.firstinspires.ftc.teamcode.scheduler.TeamImu;
 
-@Autonomous(name = "ParkingRight", group="Autonomous")
-public class AutoParkRight extends BaseAutonomousOpMode<TeamRobot> {
-    public AutoParkRight() {
+@Autonomous(name = "ParkingShort", group="Autonomous")
+public class AutoParkShortDelay extends BaseAutonomousOpMode<TeamRobot> {
+    public AutoParkShortDelay() {
         super(new TeamRobot());
     }
 
@@ -20,7 +21,8 @@ public class AutoParkRight extends BaseAutonomousOpMode<TeamRobot> {
     @Override
     public void teamRun() {
         try {
-            robot.startInchMove(45, 0.5).waitUntilFinished();
+            Scheduler.get().sleep(10000, "Wait for other robot");
+            robot.startInchMove(30, 0.5).waitUntilFinished();
             robot.startStopping().waitUntilFinished();
         } catch (Exception e) {}
     }
