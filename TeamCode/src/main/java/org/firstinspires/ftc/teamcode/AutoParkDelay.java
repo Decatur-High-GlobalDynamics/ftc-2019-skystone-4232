@@ -7,9 +7,9 @@ import org.firstinspires.ftc.teamcode.scheduler.EndableAction;
 import org.firstinspires.ftc.teamcode.scheduler.Scheduler;
 import org.firstinspires.ftc.teamcode.scheduler.TeamImu;
 
-@Autonomous(name = "ParkingShortDelay", group="Autonomous")
-public class AutoParkShortDelay extends BaseAutonomousOpMode<TeamRobot> {
-    public AutoParkShortDelay() {
+@Autonomous(name = "ParkingDelay", group="Autonomous")
+public class AutoParkDelay extends BaseAutonomousOpMode<TeamRobot> {
+    public AutoParkDelay() {
         super(new TeamRobot());
     }
 
@@ -22,7 +22,7 @@ public class AutoParkShortDelay extends BaseAutonomousOpMode<TeamRobot> {
     public void teamRun() {
         try {
             Scheduler.get().sleep(10000, "Wait for other robot");
-            robot.startInchMove(30, 0.75).waitUntilFinished();
+            robot.startInchMove(45, 0.75).waitUntilFinished();
             robot.startStopping().waitUntilFinished();
         } catch (Exception e) {}
     }

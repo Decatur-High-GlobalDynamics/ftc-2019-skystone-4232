@@ -15,7 +15,9 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
 
     @Override
     protected void teleOpLoop() throws InterruptedException {
-        robot.setDrivingPowers_teleop(gp1.left_stick_y, gp1.right_stick_y);
+        if (gp1.right_trigger > 0.5) robot.setDrivingPowers_teleop(gp1.left_stick_y * 0.5, gp1.right_stick_y * 0.5);
+        else robot.setDrivingPowers_teleop(gp1.left_stick_y, gp1.right_stick_y);
+
         if (gp2.left_bumper.isPressed) {
             robot.setIntakePower(1);
             robot.setHoldServoPosition(0);
@@ -33,9 +35,11 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
 
 
 
-        //if(gp2.left_bumper.isPressed){
-            robot.setGateServoPosition(-gp2.left_stick_y);
-        //}
+        if(gp2.x.isPressed){
+            robot.foundGrab.setPower(0.5);
+        } else {
+            robot.foundGrab.setPower(-0.1);
+        }
         if (gp2.a.onPress) {
             robot.currentPos = TeamRobot.ARM_POSITION.DOWN;
             robot.armRaiseMotor.setTargetPosition(robot.startArmPos);
@@ -61,11 +65,6 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
         else if (gp2.dpad_up.isPressed)
             robot.releaseBlock();
 
-        if (gp2.a.onPress) {
-            robot.moveArmDown();
-        } else if (gp2.y.onPress) {
-            robot.moveArmUp();
-        }
 
         // GP2 - DPAD-LEFT/RIGHT: armSwing
         if (gp2.dpad_left.isPressed)
@@ -73,7 +72,13 @@ public class TeleOP1 extends BaseTeleOpMode <TeamRobot>
         if (gp2.dpad_right.isPressed)
             robot.setArmSwingServoPosition(robot.armSwingServo.getPosition()+0.05);
 
-
+        if (gp1.left_trigger > 0.5) {
+            robot.sweepLeft.setPosition(1);
+            robot.sweepRight.setPosition(-1);
+        } else {
+            robot.sweepLeft.setPosition(-1);
+            robot.sweepRight.setPosition(1);
+        }
 
     }
 

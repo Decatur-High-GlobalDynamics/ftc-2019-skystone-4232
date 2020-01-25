@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.scheduler.Robot;
+import org.firstinspires.ftc.teamcode.scheduler.Scheduler;
 import org.firstinspires.ftc.teamcode.scheduler.Utils;
 
 public class TeamRobot extends Robot
@@ -27,9 +28,13 @@ public class TeamRobot extends Robot
 
     public static enum ARM_POSITION {DOWN, MID, TOP};
 
+    public static enum GRAB_POSITION {RELEASE, GRAB};
+
     int startArmPos;
     static final int MEDIUM_POS = 140;
     static final int TOP_POS = 329;
+
+    static final int GRAB_POS = 40;
 
     public ARM_POSITION currentPos = ARM_POSITION.DOWN;
 
@@ -42,11 +47,14 @@ public class TeamRobot extends Robot
 
     public TouchSensor armTouch;
 
-    public Servo gateServo;
+    public DcMotor foundGrab;
     public CRServo intakeServoLeft;
     public CRServo intakeServoRight;
 
     public Servo holdServo;
+
+    public Servo sweepLeft;
+    public Servo sweepRight;
 
     double previousIntakeLeftPostition, previousIntakeRightPosition;
     double intakeLeftSpeed, intakeRightSpeed;
@@ -78,7 +86,7 @@ public class TeamRobot extends Robot
         setDrivingMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
         stopDrivingWheels_raw();
 
-        gateServo = hardwareMap.servo.get("gate");
+        foundGrab = hardwareMap.dcMotor.get("tray_grabber");
         intakeServoLeft = hardwareMap.crservo.get("intake_left");
         intakeServoRight = hardwareMap.crservo.get("intake_right");
         intakeServoLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -100,11 +108,34 @@ public class TeamRobot extends Robot
 
         armTouch = hardwareMap.touchSensor.get("arm_touch");
 
-        holdServo = hardwareMap.servo.get("hold");
-        setHoldServoPosition(0.5);
+        //holdServo = hardwareMap.servo.get("hold");
+        //setHoldServoPosition(0.5);
+
+        sweepLeft = hardwareMap.servo.get("sweep_left");
+        sweepLeft.setPosition(-1);
+        sweepRight = hardwareMap.servo.get("sweep_right");
+        sweepRight.setPosition(1);
 
         // Make sure gate arm is out of the way
-        setGateServoPosition(GATE_ARM_FOLDED_POSITION);
+        foundGrab.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        foundGrab.setPower(-0.3);
+        int prevLoc = foundGrab.getCurrentPosition();
+        while (true) {
+            try {
+                Scheduler.get().sleep(20, "Trying to setup found grabber");
+            } catch (Exception e) {
+
+            }
+            if (Math.abs(foundGrab.getCurrentPosition() - prevLoc) < 2) {
+                break;
+            }
+            prevLoc = foundGrab.getCurrentPosition();
+        }
+        foundGrab.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        foundGrab.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //foundGrab.setTargetPosition(0);
+        //foundGrab.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        foundGrab.setPower(0);
         setArmSwingServoPosition(ARM_SWING_FOLDED_POSITION);
         releaseBlock();
     }
@@ -123,14 +154,6 @@ public class TeamRobot extends Robot
                                 intakeServoRight.getPower(), intakeRightSpeed);
                     }});
 
-        telemetry.addLine("Gate: ")
-                .addData("", new Func<String>() {
-                    @Override
-                    public String value()
-                    {
-                        return saveTelemetryData("Gate", "|pos=%.2f",
-                                gateServo.getPosition());
-                    }});
         telemetry.addLine("Arm: ")
                 .addData("", new Func<String>() {
                     @Override
@@ -142,6 +165,17 @@ public class TeamRobot extends Robot
                                 armRaiseMotor.getCurrentPosition(),
                                 armRaiseMotor.getPower(),
                                 armTouch.isPressed()?"Touch sensor pressed":"Touch sensor not pressed");
+                    }});
+
+        telemetry.addLine("Foundation: ")
+                .addData("", new Func<String>() {
+                    @Override
+                    public String value()
+                    {
+                        return saveTelemetryData("Arm", "|currentpos=%d|Power=%.2f|targetpos=%d",
+                                foundGrab.getCurrentPosition(),
+                                foundGrab.getPower(),
+                                foundGrab.getTargetPosition());
                     }});
     }
 
@@ -199,11 +233,15 @@ public class TeamRobot extends Robot
 //        }
     }
 
-    public void setGateServoPosition(double position)
+    public void setTrayGrabberPosition(GRAB_POSITION pos)
     {
-        position= Utils.clipValue("GateServoPosition", position, GATE_ARM_FOLDED_POSITION, GATE_ARM_EXTENDED_POSITION);
-        documentComponentStatus("GateServo", "Setting Gate position to %.2f", position);
-        gateServo.setPosition(position);
+        if (pos == GRAB_POSITION.GRAB) {
+            foundGrab.setTargetPosition(GRAB_POS);
+            foundGrab.setPower(1);
+        } else {
+            foundGrab.setTargetPosition(0);
+            foundGrab.setPower(-1);
+        }
     }
 
     public void setArmSwingServoPosition(double position)
@@ -256,6 +294,6 @@ public class TeamRobot extends Robot
 
     public void setHoldServoPosition(double position) {
         documentComponentStatus("Hold Servo", "Setting Hold Servo position to %.2f", position);
-        holdServo.setPosition(position);
+        //holdServo.setPosition(position);
     }
 }
